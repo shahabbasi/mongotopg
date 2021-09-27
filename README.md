@@ -1,2 +1,2 @@
-# mongotopg
-Migrate from mongo database to postgres
+# Mongo To Postgres
+Migrate from mongo database to postgres.

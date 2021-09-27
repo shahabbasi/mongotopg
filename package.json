@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/shahabbasi/mongotopg/issues"
   },
-  "homepage": "https://github.com/shahabbasi/mongotopg#readme"
+  "homepage": "https://github.com/shahabbasi/mongotopg#readme",
+  "dependencies": {
+    "redis": "^3.1.2"
+  }
 }

@@ -24,7 +24,6 @@ async function getMongoClient (client = null) {
 
     try {
         await client.connect();
-        await  listDatabases(client);
         mongoClient = client;
     } catch (e) {
         console.error(e);
@@ -34,4 +33,12 @@ async function getMongoClient (client = null) {
     }
 }
 
-module.exports = { getMongoClient };
+async function closeMongoClient (client) {
+    try {
+        await client.close();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+module.exports = { getMongoClient, closeMongoClient };

@@ -40,3 +40,5 @@ rl.question('What mongo collection is being exported?:', async (answer) => {
     }
 });
 
+
+module.exports = { init };

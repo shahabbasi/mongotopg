@@ -13,31 +13,45 @@ function extractNames (doc, map) {
     }
     for (const field in doc) {
         const type = typeof(doc[field]);
-        const existing = map[field];
+        let fields = [];
+        if (typeof(map[field]) == 'string') {
+            fields = map[field] ? map[field].split('|') : [];
+        } else if (map[field] != null && typeof(map[field] == 'object')) {
+            fields = map[field];
+        }
         if (type === 'number' ||
         type === 'boolean' ||
         type === 'string' ||
         type === 'bigint') {
-            if (existing && existing !== type) {
-                console.log(`WARNING: field ${field} contains type: ${type} and ${existing}`);
+            if (fields.length > 0 && fields.indexOf(type) === -1) {
+                console.log(`WARNING: field ${field} contains type: ${type} and ${fields.join(' and ')}`);
+                fields.push(type);
+            } else if (fields.length === 0) {
+                fields[0] = type;
             }
-            map[field] = type;
+            map[field] = `${fields.join('|')}`;
         } else if (type === 'object') {
             if (doc[field].constructor.name === 'Date') {
-                if (existing && existing !== 'date') {
-                    console.log(`WARNING: field ${field} contains type: ${type} and ${existing}`);
+                if (fields.length > 0 && fields.indexOf('date') === -1) {
+                    console.log(`WARNING: field ${field} contains type: date and ${fields.join(' and ')}`);
+                    fields.push('date');
+                } else if (fields.length === 0) {
+                    fields[0] = 'date';
                 }
-                map[field] = 'date';
+                map[field] = `${fields.join('|')}`;
                 continue;
             }
-            let innerMap = new Map();
-            innerMap = extractNames(doc[field], innerMap);
+            const innerMap = extractNames(doc[field], {});
             if (doc[field].constructor.name === 'Array') {
-                map[field] = [innerMap.values().next().value];
+                map[field] = [innerMap[0]];
             } else {
                 map[field] = innerMap;
             }
+        } else if (type === 'function') {
+            console.log(doc[field]());
+            break;
         } else {
+            console.error('Unhandled field type...');
             console.log(doc);
             console.log(field);
             console.log(type);
@@ -47,25 +61,38 @@ function extractNames (doc, map) {
     return map;
 }
 
-async function extractSchema (schemaName) {
+async function extractSchema (schemaName, depht) {
     const mongo = await getMongoClient();
     const collection = mongo.db().collection(schemaName);
-    const cursor = collection.find({});
+    let cursor = collection.find({});
     let map = {};
-    await cursor.forEach((doc) => {
-        map = extractNames(doc, map);
-        if (!doc) {
-            closeMongoClient();
-            return null;
-        }
-    });
+    let limit = Infinity;
+    if (depht) {
+        limit = depht;
+    }
+    let counter = 0;
+    try {
+        await cursor.forEach((doc) => {
+            map = extractNames(doc, map);
+            counter ++;
+            if (counter == limit) {
+                throw new Error('Just to break forEach.');
+            }
+            if (!doc) {
+                closeMongoClient();
+                return null;
+            }
+        });
+    } catch (error) {
+        console.log(error.message);
+    }
     closeMongoClient();
     return map;
 }
 
-rl.question('What mongo collection\'s schema is being extracted?:', async (answer) => {
+rl.question('What mongo collection\'s schema is being extracted?(schema|depht): ', async (answer) => {
     try {
-        const result = await extractSchema(answer)
+        const result = await extractSchema(answer.split('|')[0], answer.split('|')[1])
         console.log(result);
         process.exit(0);
     } catch (error) {

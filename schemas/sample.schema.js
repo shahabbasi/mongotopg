@@ -7,7 +7,7 @@ The field ifUndefined can be either a hardcoded value or a function; Remember th
 The field ifNull is the same as ifUndefined but triggers on null value instead of undefiend value.
 The field ifUndefinedOrNull triggers if value is undefined or null.
 You can either set ifNull and ifUndefined or ifUndefinedOrNull.
-The field manipulation accepts a function or null, Parameters name and value will be passed to the function. If field manipulation is not null then the function will be called and the result will replace the value of that field. Note: It's not important if the result of the function is the same as datatype of the field.
+The field manipulation accepts a function or null, Parameter entity will be passed to the function. If field manipulation is not null then the function will be called and the result will replace the value of that field. Note: It's not important if the result of the function is the same as datatype of the field.
 */
 const { SkipEntity, SkipField } = require('./field-actions/utils/skip');
 
@@ -31,16 +31,16 @@ const userSchema = {
                 fieldName: 'first_name',
                 ifUndefined: new SkipField(),
                 ifNull: new SkipField(),
-                manipulation: (name, value) => {
-                    return value.split(' ')[0];
+                manipulation: (entity) => {
+                    return entity.fullName.split(' ')[0];
                 }
             }, {
                 tableName: 'users',
                 fieldName: 'last_name',
                 ifUndefined: new SkipField(),
                 ifNull: new SkipField(),
-                manipulation: (name, value) => {
-                    return value.split(' ')[1];
+                manipulation: (entity) => {
+                    return entity.fullName.split(' ')[1];
                 }
             }],
         },

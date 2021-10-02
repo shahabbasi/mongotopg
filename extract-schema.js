@@ -47,25 +47,29 @@ function extractNames (doc, map) {
     return map;
 }
 
+async function extractSchema (schemaName) {
+    const mongo = await getMongoClient();
+    const collection = mongo.db().collection(schemaName);
+    const cursor = collection.find({});
+    let map = {};
+    await cursor.forEach((doc) => {
+        map = extractNames(doc, map);
+        if (!doc) {
+            closeMongoClient();
+            return null;
+        }
+    });
+    closeMongoClient();
+    return map;
+}
+
 rl.question('What mongo collection\'s schema is being extracted?:', async (answer) => {
     try {
-        const mongo = await getMongoClient();
-        const collection = mongo.db().collection(answer);
-        const cursor = collection.find({});
-        let map = {};
-        await cursor.forEach((doc) => {
-            map = extractNames(doc, map);
-            if (!doc) {
-                closeMongoClient();
-                process.exit(0);
-            }
-        });
-        console.log(map);
-        closeMongoClient();
+        const result = await extractSchema(answer)
+        console.log(result);
         process.exit(0);
     } catch (error) {
         console.log(error);
-        closeMongoClient();
         process.exit(1);
     }
 });

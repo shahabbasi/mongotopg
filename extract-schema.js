@@ -11,6 +11,9 @@ function extractNames (doc, map) {
     if (doc.constructor.name === 'DBRef') {
         return doc.oid;
     }
+    if (doc.constructor.name === 'ObjectId') {
+        return 'string';
+    }
     for (const field in doc) {
         const type = typeof(doc[field]);
         let fields = [];
@@ -47,9 +50,6 @@ function extractNames (doc, map) {
             } else {
                 map[field] = innerMap;
             }
-        } else if (type === 'function') {
-            console.log(doc[field]());
-            break;
         } else {
             console.error('Unhandled field type...');
             console.log(doc);

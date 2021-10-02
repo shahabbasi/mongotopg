@@ -13,7 +13,7 @@ function extractNames (doc, map) {
     }
     for (const field in doc) {
         const type = typeof(doc[field]);
-        const existing = map.get(field);
+        const existing = map[field];
         if (type === 'number' ||
         type === 'boolean' ||
         type === 'string' ||
@@ -21,21 +21,21 @@ function extractNames (doc, map) {
             if (existing && existing !== type) {
                 console.log(`WARNING: field ${field} contains type: ${type} and ${existing}`);
             }
-            map.set(field, type);
+            map[field] = type;
         } else if (type === 'object') {
             if (doc[field].constructor.name === 'Date') {
                 if (existing && existing !== 'date') {
                     console.log(`WARNING: field ${field} contains type: ${type} and ${existing}`);
                 }
-                map.set(field, 'date');
+                map[field] = 'date';
                 continue;
             }
             let innerMap = new Map();
             innerMap = extractNames(doc[field], innerMap);
             if (doc[field].constructor.name === 'Array') {
-                map.set(field, [innerMap.values().next().value]);
+                map[field] = [innerMap.values().next().value];
             } else {
-                map.set(field, innerMap);
+                map[field] = innerMap;
             }
         } else {
             console.log(doc);
@@ -52,18 +52,20 @@ rl.question('What mongo collection\'s schema is being extracted?:', async (answe
         const mongo = await getMongoClient();
         const collection = mongo.db().collection(answer);
         const cursor = collection.find({});
-        let map = new Map();
+        let map = {};
         await cursor.forEach((doc) => {
             map = extractNames(doc, map);
             if (!doc) {
-                closeMongoClient(mongo);
-                exit(0);
+                closeMongoClient();
+                process.exit(0);
             }
         });
         console.log(map);
+        closeMongoClient();
+        process.exit(0);
     } catch (error) {
         console.log(error);
         closeMongoClient();
-        exit(0);
+        process.exit(1);
     }
 });

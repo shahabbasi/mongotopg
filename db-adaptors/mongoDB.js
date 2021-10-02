@@ -33,9 +33,9 @@ async function getMongoClient (client = null) {
     }
 }
 
-async function closeMongoClient (client) {
+async function closeMongoClient () {
     try {
-        await client.close();
+        await mongoClient.close();
     } catch (error) {
         console.log(error);
     }

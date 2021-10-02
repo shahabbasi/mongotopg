@@ -73,3 +73,5 @@ rl.question('What mongo collection\'s schema is being extracted?:', async (answe
         process.exit(1);
     }
 });
+
+module.exports = { extractSchema };
